@@ -2,13 +2,9 @@
 We have IMDB movies dataset in which I have done analysis of the dataset so we can provide recommendations for the types of content Bolly movies should focus on producing.
 
 
-
-
-
-
--- Segment 1: Database - Tables, Columns, Relationships
--- Q 1.1 What are the different tables in the database and how are they connected to each other in the database?
--- Q 1.2 Find the total number of rows in each table of the schema.
+# Segment 1: Database - Tables, Columns, Relationships
+# Q 1.1 What are the different tables in the database and how are they connected to each other in the database?
+# Q 1.2 Find the total number of rows in each table of the schema.
 select
 (select count(*) from director_mapping) as count_direc_mapping,
 (select count(*) from genre)as count_genre ,
@@ -17,7 +13,7 @@ select
 (select count(*) from ratings)as count_ratings,
 (select count(*) from role_mapping) as count_role_mapping ;
 
-## total number of rows are as follows:
+#total number of rows are as follows:
 #director_mapping=3867
 #genre=14663
 #movie=7997
@@ -25,7 +21,7 @@ select
 #ratings=7997
 #role_mapping=15615
 
--- Q 1.3 Identify which columns in the movie table have null values.
+# Q 1.3 Identify which columns in the movie table have null values.
 
 SELECT 
 	(select count(*) from movie where id is NULL) as id_null,
@@ -43,34 +39,33 @@ SELECT
 #and coulmn :- worlwide_gross_income,languages,production_company have null values
 
 
-
-
-
 ############################################################################################
--- Segment 2: Movie Release Trends
+# Segment 2: Movie Release Trends
 #############################################################################################
 
-
-
-
--- 1:Determine the total number of movies released each year and analyse the month-wise trend.
+# 1:Determine the total number of movies released each year and analyse the month-wise trend.
 select year ,count(id) from movie group by year;
 select count(title)as all_movies, month(date_published) as months from movie group by months order by months;
 
-# year 2017 = 3052 
-# year 2018 = 2944
-# year 2019 = 2001
+#year 2017 = 3052 
+#year 2018 = 2944
+#year 2019 = 2001
  
--- 2:Calculate the number of movies produced in the USA or India in the year 2019
+# 2:Calculate the number of movies produced in the USA or India in the year 2019
 select country,count(id) as total_movies from movie where year='2019' and lower(country) like 'usa' or lower(country) like 'india' group by country;
  
  #india=1007
  #usa=592
+ 
+ 
+########################################################
+# Segment 3: Production Statistics and Genre Analysis
+########################################################
 
--- Segment 3: Production Statistics and Genre Analysis
 
--- 1:Retrieve the unique list of genres present in the dataset.
+# 1:Retrieve the unique list of genres present in the dataset.
 select distinct(genre)as all_genre,count(movie_id)as total_movies from genre group by genre;
+
 #drama=4285
 #fantasy=342
 #thriller=1484
@@ -78,17 +73,17 @@ select distinct(genre)as all_genre,count(movie_id)as total_movies from genre gro
 #horror=1208 
 #etc.
 
--- 2:Identify the genre with the highest number of movies produced overall.
+# 2:Identify the genre with the highest number of movies produced overall.
 select distinct(genre)as genre_of_movie,count(movie_id)as total_movies from genre group by genre order by total_movies desc limit 1;
 #drama=4285
 
--- 3:Determine the count of movies that belong to only one genre.
+# 3:Determine the count of movies that belong to only one genre.
 select m.title as movie_name,count(genre) as count_of_genre from genre g
 join movie m on m.id=g.movie_id group by movie_name having count_of_genre = 1;
 
 #the other side of the wind ,ankur,kiss daddy goodbye, the evil dead and so on.....
 
--- 4:Calculate the average duration of movies in each genre.
+# 4:Calculate the average duration of movies in each genre.
 select distinct(g.genre)as genres,avg(m.duration) as avg_duration from movie m join genre g on m.id=g.movie_id group by genres; 
 
 #thriller=101.5761
@@ -97,22 +92,19 @@ select distinct(g.genre)as genres,avg(m.duration) as avg_duration from movie m j
 #comedy=102.7746
 #horror=927243
 
--- 5:Find the rank of the 'thriller' genre among all genres in terms of the number of movies produced.
+# 5:Find the rank of the 'thriller' genre among all genres in terms of the number of movies produced.
 select * from (select genre,count(movie_id)as total_movies,rank() over(order by count(movie_id) desc )as ranks from genre    
 group by genre)as subquery 
 where genre = 'Thriller';
 #1484 movies has thriller genre and its rank is 3rd.
 
 
-
 ################################################################################################
--- Segment 4: Ratings Analysis and Crew Members
+# Segment 4: Ratings Analysis and Crew Members
 ##################################################################################################
 
 
-
-
--- 1:Retrieve the minimum and maximum values in each column of the ratings table (except movie_id).
+# 1:Retrieve the minimum and maximum values in each column of the ratings table (except movie_id).
 select min(avg_rating) as min_avg,max(avg_rating)as max_avg,min(total_votes) as min_vote,max(total_votes) as max_vote,
 min(median_rating) as min_median_rating,max(median_rating) as max_median_rating from ratings;
 
@@ -120,7 +112,7 @@ min(median_rating) as min_median_rating,max(median_rating) as max_median_rating 
 #min_vote=100,max_vote=725138
 #min_median=1,max_median=10
 
--- 2:Identify the top 10 movies based on average rating.
+# 2:Identify the top 10 movies based on average rating.
 select title as Movie_Name, avg_rating from movie m
 join ratings r on r.movie_id = m.id
 order by 2 desc
@@ -132,27 +124,27 @@ limit 10;
 #runam
 #fan so on....
 
--- 3:Summarise the ratings table based on movie counts by median ratings.
+# 3:Summarise the ratings table based on movie counts by median ratings.
 select distinct(median_rating) as median_ratings,count(movie_id) as total_movie from ratings group by median_ratings order by median_ratings;
 
 #94 movies have 1 median rating.
 #119 movies have 2 median rating.
 #283 movies have 3 median rating.
 
--- 4:Identify the production house that has produced the most number of hit movies (average rating > 8).
+# 4:Identify the production house that has produced the most number of hit movies (average rating > 8).
 select production_company, count(id) as number_of_movies from movie m
 join ratings r on m.id = r.movie_id
 where avg_rating > 8 and production_company is not null
 group by production_company
 order by number_of_movies desc;
 
-# top production_company which has hit movies(average rating > 8) are 
+#top production_company which has hit movies(average rating > 8) are 
 #Dream warrior pictures
 #national theatre live
 #lietuvos kinostudija
 #swadharm entertainment so on..
 
--- 5:Determine the number of movies released in each genre during March 2017 in the USA with more than 1,000 votes.
+# 5:Determine the number of movies released in each genre during March 2017 in the USA with more than 1,000 votes.
 select genre,year, count(g.movie_id) movie_count from genre g
 join movie m on m.id = g.movie_id
 join ratings r on g.movie_id = r.movie_id
@@ -165,7 +157,7 @@ order by movie_count desc;
 #action has =8
 #thriller has = 8 so on...
 
--- 6:Retrieve movies of each genre starting with the word 'The' and having an average rating > 8.
+# 6:Retrieve movies of each genre starting with the word 'The' and having an average rating > 8.
 select m.title,r.avg_rating,g.genre from movie m join ratings r on m.id=r.movie_id 
 join genre g on m.id=g.movie_id where m.title like "The%" and r.avg_rating > 8;
 
@@ -174,18 +166,11 @@ join genre g on m.id=g.movie_id where m.title like "The%" and r.avg_rating > 8;
 #the colour of darkness
 #theeran adhigaaram ondru // so on..
 
-
-
-
-
 ##############################################################################################
--- Segment 5: Crew Analysis
+# Segment 5: Crew Analysis
 ##############################################################################################
 
-
-
-
--- 1:Identify the columns in the names table that have null values.
+# 1:Identify the columns in the names table that have null values.
 select 
 (select count(*) from names where id is NULL) as id_null,
 (select count(*) from names where name is NULL) as name_null,
@@ -193,9 +178,9 @@ select
 (select count(*) from names where date_of_birth is NULL) as date_of_birth_null,
 (select count(*) from names where known_for_movies is NULL) as known_for_movies_null;
 
-# height , date_of_birth, known_for_movies have null values.
+#height , date_of_birth, known_for_movies have null values.
 
--- 2:Determine the top three directors in the top three genres with movies having an average rating > 8.
+# 2:Determine the top three directors in the top three genres with movies having an average rating > 8.
 with top_3_genre as(
 select g.genre,count(g.movie_id) as total_movies from genre g 
 join ratings r on g.movie_id=r.movie_id where r.avg_rating > 8
@@ -210,12 +195,12 @@ group by director_name
 order by total_movie desc
 limit 3;
 
-# director_name, total_movie
+#director_name, total_movie
 -- 'James Mangold', '4'
 -- 'Anthony Russo', '3'
 -- 'Joe Russo', '3'
 
--- 3:Find the top two actors whose movies have a median rating >= 8.
+# 3:Find the top two actors whose movies have a median rating >= 8.
 select n.name, count(rm.movie_id) as total_movies from names n 
 join role_mapping rm on n.id=rm.name_id
 join ratings r on r.movie_id=rm.movie_id where r.median_rating >= 8 and category='actor'
@@ -225,13 +210,13 @@ limit 2;
 
 #mohanlal and mamooty are the top actors
 
--- 4:Identify the top three production houses based on the number of votes received by their movies.
+# 4:Identify the top three production houses based on the number of votes received by their movies.
 select production_company,sum(total_votes)as votes from movie m join ratings r 
 on m.id=r.movie_id group  by production_company order by votes desc limit 3; 
   
   #marvel is the top production company
   
--- 5:Rank actors based on their average ratings in Indian movies released in India.
+# 5:Rank actors based on their average ratings in Indian movies released in India.
 select n.name as actor_name,sum( total_votes) as total_votes, count(r.movie_id) as movie_count,round(sum(avg_rating*total_votes)/sum(total_votes),2) as actor_avg_rating,
 row_number() over(order by round(sum(avg_rating*total_votes)/sum(total_votes),2)   desc, count(r.movie_id) desc) as ranking
 from movie as  m join ratings as r on m.id=r.movie_id
@@ -242,13 +227,13 @@ group by name
 having movie_count >= 5
 ;
 
-#-- 'Vijay Sethupathi',  '1'
+-- 'Vijay Sethupathi',  '1'
 -- 'Fahadh Faasil',  '2'
 -- 'Yogi Babu',  '3'
 -- 'Joju George',  '4'
 -- 'Ammy Virk',  '5'
 
--- 6:Identify the top five actresses in Hindi movies released in India based on their average ratings.
+# 6:Identify the top five actresses in Hindi movies released in India based on their average ratings.
 with hindi_actress_rank as
 	(select n.name as actress_name,
 		sum( total_votes) as total_votes, 
@@ -264,7 +249,7 @@ with hindi_actress_rank as
     select * , rank () over (order by actress_avg_rating desc,total_votes desc) as actress_rank
 from hindi_actress_rank where movie_count>=3;
 
-#'Taapsee Pannu', '1'
+-- 'Taapsee Pannu', '1'
 -- 'Divya Dutta', '2'
 -- 'Kriti Kharbanda','3'
 -- 'Sonakshi Sinha','4'
@@ -283,16 +268,11 @@ order by 4 desc,2 desc
 limit 5;
 
 
-
-
 ################################################################################################
--- Segment 6: Broader Understanding of Data
+# Segment 6: Broader Understanding of Data
 #################################################################################################
 
-
-
-
--- 1:Classify thriller movies based on average ratings into different categories.
+# 1:Classify thriller movies based on average ratings into different categories.
 select Title as Movie_name, 
 case when avg_rating > 8 then 'Excellent'
 when avg_rating > 5 then 'nice'
@@ -301,7 +281,7 @@ join ratings r on r.movie_id = m.id
 join genre g on m.id = r.movie_id
 where genre = 'Thriller';
 
--- 2:analyse the genre-wise running total and moving average of the average movie duration.
+# 2:analyse the genre-wise running total and moving average of the average movie duration.
 with genre_summary as 
 (select genre,avg(duration) as avg_duration from  genre g left join 
 movie m on g.movie_id=m.id
@@ -309,14 +289,14 @@ group by genre)
 select genre,avg_duration,sum(avg_duration) over (order by avg_duration desc) as running_total,
 avg(avg_duration) over (order by avg_duration desc) as moving_average from genre_summary;
 
-## genre, avg_duration, running_total, moving_average
+-- genre, avg_duration, running_total, moving_average
 -- 'Action', '112.8829', '112.8829', '112.88290000'
 -- 'Romance', '109.5342', '222.4171', '111.20855000'
 -- 'Crime', '107.0517', '329.4688', '109.82293333'
 -- 'Drama', '106.7746', '436.2434', '109.06085000'
 -- 'Fantasy', '105.1404', '541.3838', '108.27676000'
 
--- 3 Identify the five highest-grossing movies of each year that belong to the top three genres.
+# 3 Identify the five highest-grossing movies of each year that belong to the top three genres.
 with top_genre as
 (select genre,count(m.id) as movie_count
 from genre g left join movie m on g.movie_id=m.id
@@ -333,7 +313,7 @@ from movie m inner join genre g on g.movie_id=m.id
 where g.genre in (select genre from top_genre)) t
 where movie_rank <=5;
 
-## genre, year, movie_name, worlwide_gross_income, movie_rank
+-- genre, year, movie_name, worlwide_gross_income, movie_rank
 -- 'Comedy', '2017', 'Despicable Me 3', '$ 1034799409', '1'
 -- 'Comedy', '2017', 'Jumanji: Welcome to the Jungle', '$ 962102237', '2'
 -- 'Drama', '2017', 'Zhan lang II', '$ 870325439', '1'
@@ -342,7 +322,7 @@ where movie_rank <=5;
 -- 'Thriller', '2017', 'Zhan lang II', '$ 870325439', '2'
 
 
--- 4 Determine the top two production houses that have produced the highest number of hits among multilingual movies.
+# 4 Determine the top two production houses that have produced the highest number of hits among multilingual movies.
 select m.production_company,
 count(m.id) as movie_count,
 rank() over(order by count(m.id)desc ) as prod_rank
@@ -352,12 +332,12 @@ and languages like "%,%"
 group by production_company
 limit 2
 ;
-# production_company, movie_count, prod_rank
+-- production_company, movie_count, prod_rank
 -- 'Star Cinema',        '3',        '1'
 -- 'Ave Fenix Pictures', '2',        '2'
 
 
--- 5 Identify the top three actresses based on the number of Super Hit movies (average rating > 8) in the drama genre.
+# 5 Identify the top three actresses based on the number of Super Hit movies (average rating > 8) in the drama genre.
 
 select name, count(rm.movie_id) count_of_superhit_movies from names n
 join role_mapping rm on n.id = rm.name_id
@@ -368,12 +348,12 @@ group by name
 order by count_of_superhit_movies desc
 limit 3;
 
-#         name        ,   count_of_superhit_movies
+--         name        ,   count_of_superhit_movies
 -- 'Denise Gough',                '2'
 -- 'Susan Brown',                 '2'
 -- 'Amanda Lawrence',             '2'
 
--- 6: Retrieve details for the top nine directors based on the number of movies, including average inter-movie duration, ratings, and more.
+# 6: Retrieve details for the top nine directors based on the number of movies, including average inter-movie duration, ratings, and more.
 
 select name as Director, count(dm.movie_id) as no_of_movies, 
 avg(avg_rating) as average_rating, sum(duration) total_duration
@@ -384,7 +364,7 @@ group by name
 order by no_of_movies desc
 limit 9
 
-# Director, no_of_movies, average_rating, total_duration
+-- Director, no_of_movies, average_rating, total_duration
 -- 'Andrew Jones', '5', '3.0200000000000005', '432'
 -- 'A.L. Vijay', '5', '5.42', '613'
 -- 'Jesse V. Johnson', '4', '5.45', '383'
@@ -396,11 +376,26 @@ limit 9
 -- 'Özgür Bakar', '4', '3.75', '374'
 
 
--- Segment 7: Recommendations
+####################################################################
+# Segment 7: Recommendations
+####################################################################
 
--- Based on the analysis, provide recommendations for the types of content Bolly movies should focus on producing.
+--  Based on the analysis, provide recommendations for the types of content Bolly movies should focus on producing.
 
-###
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
